@@ -37,14 +37,14 @@ def register():
     
     # insert 
     tuser = Tuser(username=username, email=email, password=pwd_hash)
-    # db.connection()
+    print(tuser)
     db.session.add(tuser)
-    db.session.commit
+    db.session.commit()
 
     return jsonify({
         'message':"User Created",
         'user': {
-            'username': username, 'email':email
+            'username': username, 'email': email
         }
     }), HTTP_201_CREATED
 
