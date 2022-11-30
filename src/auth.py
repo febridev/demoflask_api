@@ -3,6 +3,7 @@ from src.constants.http_status_codes import HTTP_200_OK, HTTP_201_CREATED, HTTP_
 from werkzeug.security import check_password_hash,generate_password_hash
 import validators
 from src.database import Tuser, db
+from flask_jwt_extended import create_access_token, create_refresh_token
 
 
 auth = Blueprint("auth",__name__,url_prefix="/api/v1/auth")
@@ -49,6 +50,32 @@ def register():
     }), HTTP_201_CREATED
 
     # return "User Created"
+
+@auth.post('/login')
+def login():
+    email = request.json.get('email','')
+    password = request.json.get('password','')
+
+    user = Tuser.query.filter_by(email=email).first()
+    
+    #check password
+    if user:
+        is_pass_correct = check_password_hash(user.password, password)
+
+        if is_pass_correct:
+            refresh = create_refresh_token(identity=user.id)
+            access = create_access_token(identity=user.id)
+
+            return jsonify({
+                'user': {
+                    'refresh':refresh,
+                    'access':access,
+                    'username':user.username,
+                    'email':user.email
+                }
+            }), HTTP_200_OK
+    
+    return jsonify({'error':"Wrong Credentials!!"}), HTTP_401_UNAUTHORIZED
 
 @auth.get('/me')
 def me():
